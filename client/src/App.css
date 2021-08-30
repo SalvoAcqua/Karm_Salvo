@@ -1,0 +1,64 @@
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Montserrat", sans-serif;
+  text-align: center;
+}
+
+h2{
+    font-style:italic;
+    color: white;
+}
+
+h3{
+    font-style:italic;
+    color: black;
+}
+
+h4, h6{
+    color: white;
+}
+
+.green-convalid {
+    color: green;
+}
+.red-convalid {
+    color: red;
+}
+.corpo{
+    background-color: rgb(48, 54, 66);
+}
+
+.carosello{
+    height: 50%;
+    background-size: cover;
+    background-position: center center;
+}
+
+.dist-nav{
+    padding: 3;
+    margin-top: 65px;
+}
+
+.height-max{
+    height: 50%;
+    padding-top: 2;
+}
+.Footer{
+    position: relative;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding-top: 1rem;
+    padding-bottom: 0.1rem;
+    background-color:#6c757d ;
+}
+
+.button{
+    margin: 15px;
+}
+
+.fieldstyle{
+    border-width: 1px;
+    border-style: groove;
+    border-color: black;
+    padding: 10px;
+}
