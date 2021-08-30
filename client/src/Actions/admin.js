@@ -60,6 +60,12 @@ export const removeVehicle = (userData) => async (dispatch) => {
     }).catch((err)=>{console.log(err.message)})
 }
 
+export const blockVehicle = (userData) => async(dispatch) => {
+    await api.blockVehicle(userData).then((res)=>{
+        window.location.reload();
+    }).catch((err)=>{console.log(err.message)})
+}
+
 export const addParcheggio = (userData) => async(dispatch) => {
     await api.addParcheggio(userData).then((res)=>{
         window.location.reload();
@@ -81,3 +87,11 @@ export const addDipendente = (userData) => async(dispatch) => {
         dispatch({type:'GET_ERROR',payload: err.response.data});
     });
 };
+
+export const removeEmployee = (userData) => async (dispatch) => {
+    await api.removeEmployee(userData).then((res)=>{
+        window.location.reload();
+    }).catch((err)=>{
+        dispatch({type:'GET_ERROR',payload: err.response.data});
+    });
+}

@@ -1,6 +1,7 @@
 import utente from '../Models/utente.js';
 import veicolo from '../Models/veicoli.js';
 import parcheggio from '../Models/parcheggi.js';
+import prenotazione from '../Models/prenotazioni.js';
 import { response } from 'express';
 
 //Lista Clienti
@@ -13,30 +14,54 @@ export const getClienti = async (req,res) =>{
         }
         return res.json(listaClienti)
     }).catch((err)=> {return res.status(500).json(err.message)})
-}
+};
 
 //Lista Dipendenti
 export const getDipendenti = async (req,res) => {
-    await utente.find({$or: [{ ruolo: "Autista" }, { ruolo: "Addetto" }]}).then((dipendenti)=>{
-        const listaDipendenti = [];
+    await utente.find({$or: [{ ruolo: "Autista" }, { ruolo: "Addetto" }]}).then(async (dipendenti)=>{
+        let listaDipendenti = [];
+        let Utente = {};
         for(let dipendente of dipendenti){
-            const Utente = {ruolo:dipendente.ruolo,
-                            nome:dipendente.nome,
-                            cognome:dipendente.cognome,
-                            sesso: dipendente.sesso,
-                            dataNascita: dipendente.dataNascita,
-                            provinciaNascita: dipendente.provinciaNascita,
-                            luogoNascita: dipendente.luogoNascita,
-                            CF: dipendente.CF,
-                            numeroPatente: dipendente.numeroPatente,
-                            idParcheggio: dipendente.idParcheggio,
-                            email: dipendente.email
-                        }
-            listaDipendenti.push(Utente)
+            if (dipendente.ruolo=="Addetto"){
+                let NomeParcheggio="Nessun Parcheggio";
+                if (dipendente.idParcheggio!="-1") {
+                    await parcheggio.findOne({_id: dipendente.idParcheggio}).then((parcheggio)=>{
+                        NomeParcheggio=parcheggio.nome;
+                    });
+                }
+                Utente = {
+                    _id:dipendente._id,
+                    ruolo:dipendente.ruolo,
+                    nome:dipendente.nome,
+                    cognome:dipendente.cognome,
+                    sesso: dipendente.sesso,
+                    dataNascita: dipendente.dataNascita,
+                    provinciaNascita: dipendente.provinciaNascita,
+                    luogoNascita: dipendente.luogoNascita,
+                    CF: dipendente.CF,
+                    nomeParcheggio: NomeParcheggio,
+                    email: dipendente.email
+                }
+            } else {
+                Utente = {
+                    _id:dipendente._id,
+                    ruolo:dipendente.ruolo,
+                    nome:dipendente.nome,
+                    cognome:dipendente.cognome,
+                    sesso: dipendente.sesso,
+                    dataNascita: dipendente.dataNascita,
+                    provinciaNascita: dipendente.provinciaNascita,
+                    luogoNascita: dipendente.luogoNascita,
+                    CF: dipendente.CF,
+                    numeroPatente: dipendente.numeroPatente,
+                    email: dipendente.email
+                }
+            }
+            listaDipendenti.push(Utente);
         }
         return res.json(listaDipendenti)
     }).catch((err)=> {return res.status(500).json(err.message)})
-}
+};
 
 //Lista Veicoli
 export const getVeicoli = async (req,res) => {
@@ -50,14 +75,14 @@ export const getVeicoli = async (req,res) => {
         }
         return res.json(listaVeicoli)
     }).catch((err)=> {return res.status(500).json(err.message)})
-}
+};
 
 //Lista parcheggi
 export const getParcheggi = async (req,res) => {
     await parcheggio.find({}).then((parcheggi)=>{
         return res.json(parcheggi)
     }).catch((err)=> {return res.status(500).json(err.message)})
-}
+};
 
 //Lista parcheggi disponibili
 export const getParcheggiDisp = async (req,res) => {
@@ -83,7 +108,7 @@ export const getParcheggiDisp = async (req,res) => {
             }).catch((err)=> {return res.status(500).json(err.message)})
             break;
     }
-}
+};
 
 //Aggiungi Veicolo
 export const addVeicolo = async (req,res) => {
@@ -154,7 +179,7 @@ export const addVeicolo = async (req,res) => {
     }
     const newVeicolo = new veicolo(Veicolo);
     await newVeicolo.save().then((mezzo) => {return res.status(200).json(mezzo)}) .catch((err) => console.log(err));
-}
+};
 
 //Rimuovi Veicolo
 export const removeVehicle = async (req,res) =>{
@@ -181,6 +206,38 @@ export const removeVehicle = async (req,res) =>{
  export const reactivate = async (req,res) =>{
     await veicolo.findOneAndUpdate({_id:req.body.id},{statoVeicolo: "Libero"}).then((veicolo)=>{
         return res.status(200).json(veicolo);
+    }).catch((err)=>{return res.status(500).json(err.message)})
+};
+
+//Blocca Veicolo
+export const blockVehicle = async (req,res) =>{
+    await prenotazione.find({statoPrenotazione:"completa", idVeicolo: req.body.veicolo._id}).then(async (prenotazioni)=>{
+        if (prenotazioni.length!=0){
+            for (let Prenotazione of prenotazioni) {
+                switch (req.body.veicolo.tipo) {
+                    case "Autovettura":
+                        await veicolo.find({_id: {$ne: req.body.veicolo._id}, tipoVeicolo: req.body.veicolo.tipo, modello: req.body.veicolo.modello, cilindrata:req.body.veicolo.cilindrata, nPosti: req.body.veicolo.posti}).then((Veicoli)=>{
+                            console.log(Veicoli);
+                        }).catch((err)=>{return res.status(500).json(err.message)})
+                        break;
+                    case "Moto":
+                        await veicolo.find({_id: {$ne: req.body.veicolo._id}, tipoVeicolo: req.body.veicolo.tipo, modello: req.body.veicolo.modello, cilindrata:req.body.veicolo.cilindrata}).then((Veicoli)=>{
+                            console.log(Veicoli);
+                        }).catch((err)=>{return res.status(500).json(err.message)})
+                        break;
+                    case "Bici":
+                        await veicolo.find({_id: {$ne: req.body.veicolo._id}, tipoVeicolo: req.body.veicolo.tipo}).then((Veicoli)=>{
+                            console.log(Veicoli);
+                        }).catch((err)=>{return res.status(500).json(err.message)})
+                        break;
+                    default:
+                        await veicolo.find({_id: {$ne: req.body.veicolo._id}, tipoVeicolo: req.body.veicolo.tipo}).then((Veicoli)=>{
+                            console.log(Veicoli);
+                        }).catch((err)=>{return res.status(500).json(err.message)})
+                        break;
+                }
+            }
+        }
     }).catch((err)=>{return res.status(500).json(err.message)})
 };
 
@@ -211,7 +268,7 @@ export const changePark = async (req,res) => {
             await parcheggio.findOneAndUpdate({_id: req.body.nuovoParcheggio},{ $inc: {monopattiniPresenti: 1}})
             break;
     }
-}
+};
 
  //Modifica Tariffa
 export const modificaTariffa = async (req,res) =>{
@@ -224,7 +281,7 @@ export const modificaTariffa = async (req,res) =>{
  export const addParcheggio = async (req,res) =>{
      await parcheggio.findOne({$or: [{ nome: req.body.nome }, { indirizzo:req.body.indirizzo, nCivico:req.body.nCivico }]}).then((parking)=>{
          if(parking){
-            return res.status(404).json({ parcheggio: "Parcheggio già esistente per questo indirizzo o nome" });
+            return res.status(400).json({ parcheggio: "Parcheggio già esistente per questo indirizzo o nome" });
          } else{
              const newParcheggio = new parcheggio({
                  nome:req.body.nome,
@@ -245,4 +302,23 @@ export const modificaTariffa = async (req,res) =>{
      }).catch(err => {
         return res.status(500).json(err.message);
     })
- }
+ };
+
+//Rimuovi Dipendente
+export const removeEmployee = async (req,res) =>{
+    if (req.body.dipendente.ruolo=="Autista") {
+        await prenotazione.findOne({statoPrenotazione:"completa", idAutista: req.body.dipendente._id}).then(async (booking)=>{
+            if(booking){
+                return res.status(400).json({rimozioneAutista:true});
+            }else{
+                await utente.findOneAndRemove({_id: req.body.dipendente._id}).then((dipendente)=>{
+                    return res.status(200).json(dipendente);
+                }).catch((err)=>{return res.status(500).json(err.message)})
+            }
+        }).catch((err)=>{return res.status(500).json(err.message)})
+    } else {
+        await utente.findOneAndRemove({_id: req.body.dipendente._id}).then((dipendente)=>{
+            return res.status(200).json(dipendente);
+        }).catch((err)=>{return res.status(500).json(err.message)})
+    }
+ };

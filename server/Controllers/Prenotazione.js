@@ -35,3 +35,18 @@ export const addPrenotazione = async (req,res) => {
     await newPrenotazione.save().then((prenotazione)=>{return res.status(200).json(prenotazione)})
     .catch((err)=>{return res.status(500).json(err.message)})
 }
+
+//Lista Veicoli
+export const listaVeicoliPrenotazione = async (req,res) => {
+   let Veicoli = [];
+   await veicolo.find({tipoVeicolo:req.body.tipoVeicolo, statoVeicolo: { $ne: "Non Attivo"} }).then(async (veicoli)=>{
+    let DataPartenza = new Date(req.body.dataPa);
+    let DataArrivo = new Date(req.body.dataArr);    
+    for (let veicolo of veicoli) {
+            await prenotazione.findOne({idVeicolo: veicolo._id, $or: [{dataPartenza: { $gt: DataPartenza, $lt:DataArrivo}, dataArrivo: { $gt: DataArrivo}}, {dataPartenza: { $lt: DataPartenza}, dataArrivo: { $gt: DataArrivo}}, {dataPartenza: { $lt: DataPartenza}, dataArrivo: { $gt: DataPartenza, $lt: DataArrivo }}]}).then((controlloPrenotazioni)=>{
+                
+                console.log(!controlloPrenotazioni);
+            }).catch((err)=>{res.status(500).json(err.message)});
+        }   
+   }).catch((err)=>{return res.status(500).json(err.message)});
+}

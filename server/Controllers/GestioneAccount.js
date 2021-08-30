@@ -1,6 +1,8 @@
 import utente from '../Models/utente.js';
-import bcrypt from 'bcryptjs';
+import parcheggi from '../Models/parcheggi.js'
 import metodiPagamento from '../Models/metodiPagamento.js';
+import bcrypt from 'bcryptjs';
+
 
 //Aggiungi Utente
 export const registraUtente = async (req, res) => {
@@ -71,17 +73,49 @@ export const registraUtente = async (req, res) => {
 
 export const accessoUtente = async (req,res) => {
     const {email,password} = await req.body
-        await utente.findOne({email}).then((user)=>{
+    await utente.findOne({email}).then((user)=>{
         if(!user){
-            return res.status(404).json({UserNotFound: "Utente non trovato"});
-        }  else{
-            bcrypt.compare(password,user.password).then((passwordCorretta)=>{
+            return res.status(404).json({UserNotFound: "Utente non trovato"});   
+        }
+        else {
+            bcrypt.compare(password,user.password).then(async (passwordCorretta)=>{
                 if(!passwordCorretta){
                     return res.status(404).json({IncorretPassword: "La password non è corretta"});
+                }   
+                else{
+                    if(user.ruolo=="Addetto"){
+                        var Utente = {};
+                        var parcheggio = {};
+                        if (user.idParcheggio!=-1){
+                            await parcheggi.findOne({_id: user.idParcheggio}).then((park)=>{
+                                parcheggio={nome:park.nome, indirizzo:park.indirizzo, nCivico:park.nCivico};
+                            });
+                        } else {
+                            parcheggio={nome:"", indirizzo:"", nCivico:""};
+                        }
+                        Utente = {
+                            _id: user._id,
+                            ruolo: user.ruolo,
+                            nome: user.nome,
+                            cognome: user.cognome,
+                            sesso: user.sesso,
+                            dataNascita: user.dataNascita,
+                            luogoNascita: user.luogoNascita,
+                            provinciaNascita: user.provinciaNascita,
+                            CF: user.CF,
+                            email: user.email,
+                            password: user.password,
+                            idParcheggio: user.idParcheggio,
+                            nomeParcheggio: parcheggio.nome,
+                            indirizzoParcheggio: parcheggio.indirizzo,
+                            nCivicoParcheggio: parcheggio.nCivico
+                        }
+                        return res.status(200).json(Utente);
                     }
                     else{
-                        return res.json(user);
+                        return res.status(200).json(user);
                     }
+                }
             }).catch((err)=>{return res.status(500).json(err.message);})
         }
     }).catch((err)=>{ return res.status(500).json(err.message);});
@@ -134,7 +168,47 @@ export const aggiornaPatente = async (req,res) => {
 }
 
 export const aggiornaParcheggio = async (req,res) => {
-    await utente.findOneAndUpdate({_id: req.body.id},{idParcheggio: req.body.idParcheggio},{new:true}).then((user) => {
-        return res.json(user);
+    await utente.findOneAndUpdate({_id: req.body.id},{idParcheggio: req.body.idParcheggio},{new:true}).then(async (user) => {
+        var Utente = {};
+        if (user.idParcheggio==-1){
+            Utente = {
+                _id: user._id,
+                ruolo: user.ruolo,
+                nome: user.nome,
+                cognome: user.cognome,
+                sesso: user.sesso,
+                dataNascita: user.dataNascita,
+                luogoNascita: user.luogoNascita,
+                provinciaNascita: user.provinciaNascita,
+                CF: user.CF,
+                email: user.email,
+                password: user.password,
+                idParcheggio: user.idParcheggio,
+                nomeParcheggio: "",
+                indirizzoParcheggio: "",
+                nCivicoParcheggio: ""
+            }
+        } else {
+            await parcheggi.findOne({_id: req.body.idParcheggio}).then((parcheggio)=>{
+                Utente = {
+                    _id: user._id,
+                    ruolo: user.ruolo,
+                    nome: user.nome,
+                    cognome: user.cognome,
+                    sesso: user.sesso,
+                    dataNascita: user.dataNascita,
+                    luogoNascita: user.luogoNascita,
+                    provinciaNascita: user.provinciaNascita,
+                    CF: user.CF,
+                    email: user.email,
+                    password: user.password,
+                    idParcheggio: user.idParcheggio,
+                    nomeParcheggio: parcheggio.nome,
+                    indirizzoParcheggio: parcheggio.indirizzo,
+                    nCivicoParcheggio: parcheggio.nCivico
+                }
+            });
+        }
+        return res.status(200).json(Utente);
     }).catch((err) => {return res.status(500).json(err.message)})
 }

@@ -27,7 +27,8 @@ export const loginUser = (userData) => async (dispatch) => {
     } catch (error) {
         console.log(error.message);
     }
-} 
+}
+
 //Logout Utente
 export const logoutUser = () => async (dispatch) => {
     localStorage.removeItem("persist:karm");

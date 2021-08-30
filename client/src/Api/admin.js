@@ -44,6 +44,11 @@ export const reactivate = (dati) => {
     return axios.post('/Routers/GestioneAmministrazione/RiattivaVeicolo',dati);
 }
 
+//Blocca Veicolo
+export const blockVehicle = (dati) => {
+    return axios.post('/Routers/GestioneAmministrazione/BloccaVeicolo',dati);
+}
+
 //Aggiungi Parcheggio
 export const addParcheggio = (dati) => {
     return axios.post('/Routers/GestioneAmministrazione/AddParcheggio',dati);
@@ -58,4 +63,9 @@ export const modifyTariffe = (dati) => {
 //Aggiungi Dipendente
 export const addDipendente = (dati) => {
     return axios.post('/Routers/GestioneAccount/Registrazione',dati);
+}
+
+//Rimuovi Dipendente
+export const removeEmployee = (dati) => {
+    return axios.post('/Routers/GestioneAmministrazione/RimuoviDipendente',dati);
 }

@@ -2,7 +2,7 @@ import React from "react"
 import {Container,Row,Col,Button,Modal,ModalBody} from "react-bootstrap";
 import {useState, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux'
-import {getListaVeicoli, getListaParcheggiDisp, changePark, removeVehicle, reactivate} from "../../Actions/admin";
+import {getListaVeicoli, getListaParcheggiDisp, changePark, removeVehicle, reactivate, blockVehicle} from "../../Actions/admin";
 import Table from 'react-bootstrap/Table';
 import classnames from "classnames";
 import NotInterestedIcon from '@material-ui/icons/NotInterested';
@@ -16,6 +16,7 @@ function SchermataVisualizzaVeicoli (){
     const [modificaParcheggio,setModificaParcheggio] = useState({show:false,veicolo:{}});
     const [parcheggio,setParcheggio] = useState("");
     const [showErrRiattivazione,setShowErrRiattivazione] = useState(false);
+    const [showErrBlocca,setShowErrBlocca] = useState(false);
     const listaVeicoli = useSelector((state)=>state.AccountAdmin.listaVeicoli);
     const listaParcheggiDisp = useSelector((state)=>state.AccountAdmin.listaParcheggiDisp);
     const dispatch = useDispatch();
@@ -43,6 +44,11 @@ function SchermataVisualizzaVeicoli (){
         const dati = {id: veicolo._id};
         dispatch(reactivate(dati));
     }
+
+    const clickBlocca = (veicolo) => {
+        const dati = {veicolo: veicolo};
+        dispatch(blockVehicle(dati));
+    }
     
     useEffect(()=>{
         dispatch(getListaVeicoli());
@@ -51,13 +57,13 @@ function SchermataVisualizzaVeicoli (){
     return (
         <div>
             <Container style={{marginTop:"20px"}}>
-                <Modal show={showErrEliminazione || showErrRiattivazione} onHide={()=>{setShowErrEliminazione(false); setShowErrRiattivazione(false)}} centered backdrop="static">
+                <Modal show={showErrEliminazione || showErrRiattivazione || showErrBlocca} onHide={()=>{setShowErrEliminazione(false); setShowErrRiattivazione(false); setShowErrBlocca(false)}} centered backdrop="static">
                     <Modal.Header closeButton>
                             <Modal.Title style={{color:"red"}}>Errore</Modal.Title>
                     </Modal.Header>
                     <ModalBody>
-                        <h1 style={{color:"red"}}>Non puoi {showErrEliminazione ? "rimuovere" : "riattivare"}  questo veicolo!</h1>
-                        <p style={{color:"red"}}>Assicurati che lo stato del veicolo sia "Non Attivo"</p>
+                        <h1 style={{color:"red"}}>Non puoi {showErrEliminazione ? "rimuovere" : (showErrRiattivazione ? "riattivare" : "bloccare")}  questo veicolo!</h1>
+                        <p style={{color:"red"}}>Assicurati che lo stato del veicolo {showErrEliminazione||showErrRiattivazione ? "sia Non Attivo" : "non sia Occupato"}</p>
                     </ModalBody>
                 </Modal>
 
@@ -160,7 +166,7 @@ function SchermataVisualizzaVeicoli (){
                                         <td>{veicolo.prFestivo}</td>
                                         <td>{veicolo.prFeriale}</td>
                                         <td>
-                                            <Button onClick={()=>{}}>
+                                            <Button onClick={()=>veicolo.stato!="Occupato" ? clickBlocca(veicolo) : setShowErrBlocca(true)}>
                                                 <NotInterestedIcon/>
                                             </Button>
                                         </td>

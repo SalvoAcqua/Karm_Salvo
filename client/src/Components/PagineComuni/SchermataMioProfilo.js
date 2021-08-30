@@ -75,6 +75,7 @@ function SchermataMioProfilo () {
                             <div style={{backgroundColor:"deepskyblue", border:"dotted 1px"}}>
                                 {user.ruolo} : {user.nome} {user.cognome} <br/>
                                 Email : {user.email} <br/>
+                                Parcheggio : {user.idParcheggio==-1 ? "Nessun Parcheggio" : user.nomeParcheggio + ", " + user.indirizzoParcheggio + " " + user.nCivicoParcheggio} <br/>
                             </div>
                         </Row>
                         <Row>
